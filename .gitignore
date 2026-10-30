@@ -1,3 +1,7 @@
 # O código mestre de recuperação nunca deve ir para o repositório nem para o Raspberry.
 Codigo.txt
 *CODIGO_MESTRE*
+
+# Dados do servidor (projetos enviados, observações e conta): ficam só no Pi.
+dados/
+__pycache__/
