@@ -1,0 +1,23 @@
+CONECTORNO — SITE PARA USAR O SERVIDOR QUE JÁ ESTÁ NO RASPBERRY PI
+
+ESTE PACOTE NÃO CONTÉM SERVIDOR.
+
+Conteúdo: somente a pasta static (HTML, CSS, JavaScript, imagem SENAI e PDF.js).
+Não contém app.py, Flask, requirements.txt, dados, autenticação ou inicializadores.
+
+INSTALAÇÃO RESUMIDA
+1. Faça backup da pasta static atual do projeto que já roda no Raspberry.
+2. Pare o serviço atual do ConecTorno no Raspberry.
+3. Copie a pasta static deste pacote para a pasta do projeto que o servidor existente já utiliza, substituindo a static antiga.
+4. Não substitua nem apague app.py, arquivos de configuração, dados, autenticação, chave secreta ou uploads.
+5. Inicie novamente o serviço que já existe no Raspberry.
+6. No PC do professor, abra o endereço normal do servidor Raspberry (mesmo endereço e porta usados hoje).
+7. Para os monitores, use o mesmo endereço com /?monitor=1 até /?monitor=6.
+
+IMPORTANTE
+O JavaScript usa caminhos relativos (/api/...). Portanto, o site precisa ser servido pela mesma origem do servidor/API Raspberry. Não abra index.html diretamente e não use Live Server do VS Code para o uso real.
+
+COMPATIBILIDADE OBRIGATÓRIA
+O servidor existente precisa fornecer as rotas e o formato de dados descritos em DOCUMENTACAO_RASPBERRY.pdf e API_COMPATIBILIDADE.md. Esta pasta não altera o app.py do Raspberry. Se o servidor atual ainda exigir token de monitor, ou tiver API diferente, apenas trocar static não será suficiente. Nesse caso, será necessário adaptar o frontend ou ajustar as rotas do servidor — sem iniciar um segundo servidor.
+
+Veja DOCUMENTACAO_RASPBERRY.pdf antes de instalar.
