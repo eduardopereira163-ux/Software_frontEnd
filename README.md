@@ -26,7 +26,7 @@ Software_frontEnd/
 
 ## Instalar no Raspberry Pi
 
-Pré-requisitos: Raspberry Pi OS **com área de trabalho**, uma tela no HDMI e internet **só durante a instalação** (para baixar o conversor de PDF e o Chromium, se faltarem).
+Pré-requisitos: Raspberry Pi OS (32 ou 64 bits, *Lite* ou com área de trabalho), uma tela no HDMI e internet **só durante a instalação** (para baixar o conversor de PDF, o Chromium e o `cage`, se faltarem).
 
 ```bash
 cd ~
@@ -41,7 +41,7 @@ O instalador (não use `sudo`; ele pede a senha quando precisar):
 1. instala o `poppler-utils` (converte PDF em imagens) e o Chromium, se faltarem;
 2. cria o serviço **`conectorno`**, que sobe o servidor **sozinho sempre que o Pi liga** (porta 80);
 3. cria o **Wi-Fi próprio do Pi** (Access Point): pergunta o nome da rede e a senha, define o país do Wi-Fi (BR) e faz as outras redes Wi-Fi pararem de conectar sozinhas;
-4. configura a tela do Pi para abrir o **Monitor 1** em tela cheia, com login automático na área de trabalho e sem a tela apagar;
+4. **desliga a área de trabalho**: o Pi passa a ligar em modo texto e o serviço **`conectorno-tela`** abre o **Monitor 1** em tela cheia (Chromium dentro do `cage`), sem menus, ícones ou login;
 5. mostra a rede, a senha e o endereço para abrir no celular.
 
 Depois, reinicie:
@@ -89,7 +89,7 @@ Projetos, observações e a conta ficam em `dados/` e **não se perdem** na atua
 3. Em poucos segundos a tela do torno mostra o desenho. **No ar agora** lista o que cada monitor exibe; **Remover tudo** limpa os monitores.
 4. Aba **Monitores**: toque em um monitor para ver o que ele mostra, mandar observações, apagar observações ou fazê-lo voltar ao projeto geral.
 
-Na tela do torno, a observação aparece em destaque à direita e **pisca quando chega uma nova**. PDFs são convertidos em imagens (até 30 páginas). Se o servidor cair, aparece "Sem conexão com o servidor" em vermelho.
+A tela do torno é horizontal: no alto, a logo do SENAI, o número do monitor, o nome do projeto e um **relógio**; no meio, o desenho ocupando a largura toda (PDFs de várias páginas ficam com as páginas lado a lado, até 4 por tela). A **observação só aparece se o professor escreveu alguma**, numa faixa na parte de baixo, e **pisca quando chega uma nova**. PDFs são convertidos em imagens (até 30 páginas). Se o servidor cair, aparece "Sem conexão com o servidor" em vermelho.
 
 > Enviar para **Todos** não substitui um projeto **exclusivo** já enviado a um monitor — o app avisa. Para trocar, use **Voltar ao projeto geral** na página do monitor.
 
@@ -139,10 +139,10 @@ Abra `http://localhost:5000` (painel) e `http://localhost:5000/?monitor=1` (moni
 | Instalador diz "o servidor não respondeu" | Outro programa usa a porta 80. Veja `sudo ss -tlnp \| grep :80` e pare-o, ou use `./instalar.sh 5000`. Detalhes: `sudo journalctl -u conectorno -n 50`. |
 | Rede Wi-Fi do Pi não aparece | Veja o erro com `sudo nmcli con up ConecTorno`. Wi-Fi bloqueado: `sudo rfkill unblock wifi`. Precisa do Raspberry Pi OS com NetworkManager (não o *Legacy*). |
 | Celular não abre o painel | Celular fora do Wi-Fi do Pi, ou endereço errado. Confira o IP com `hostname -I` no Pi. |
-| Tela do Pi não abre sozinha | Falta o login automático na área de trabalho (`raspi-config`). Teste à mão: `~/.local/share/conectorno/iniciar-monitor.sh http://localhost 1`. |
-| Tela apaga depois de um tempo | `sudo raspi-config` → *Display Options* → *Screen Blanking* → *No*. |
+| Tela do Pi não abre sozinha (fica no login em modo texto) | Veja o erro com `sudo journalctl -u conectorno-tela -n 50`. Para mexer no Pi com a tela aberta: `Ctrl+Alt+F2` abre um terminal; `Ctrl+Alt+F1` volta. |
+| Quero a área de trabalho de volta | `sudo systemctl disable conectorno-tela && sudo systemctl set-default graphical.target && sudo reboot` |
 | PDF aparece com barra do leitor em vez de imagens | `poppler-utils` não instalado: conecte o Pi à internet e rode `./instalar.sh` de novo. |
-| Data/hora das observações errada | O Pi sem internet não acerta o relógio sozinho. Ajuste com `sudo date -s "2026-10-30 15:00"` ou deixe-o com internet ao ligar. |
+| Relógio da tela errado | O Pi não tem bateria de relógio nem internet. Ele acerta a hora sozinho **quando o professor abre o painel no celular** (vale a hora do celular). À mão: `sudo date -s "2026-11-03 15:00"`. |
 | "Não foi possível entrar no servidor" no painel | A conta em `dados/estado.json` foi criada com outra senha. Ajuste `AUTO_LOGIN` em `static/app.js` ou apague `dados/` para recomeçar. |
 
 ---

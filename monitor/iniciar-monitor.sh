@@ -23,10 +23,14 @@ xset s off -dpms s noblank 2>/dev/null || true
 
 NAVEGADOR="$(command -v chromium-browser || command -v chromium)" || { echo "Chromium não encontrado."; exit 1; }
 
+# Sem área de trabalho, o Chromium roda dentro do cage (Wayland) e precisa saber disso.
+EXTRA=()
+[ -z "${WAYLAND_DISPLAY:-}" ] || EXTRA+=(--ozone-platform=wayland)
+
 # Se o navegador fechar ou travar, abre de novo.
 while true; do
   "$NAVEGADOR" --kiosk --incognito --noerrdialogs --disable-infobars --no-first-run \
     --disable-session-crashed-bubble --check-for-update-interval=31536000 --password-store=basic \
-    "$URL/?monitor=$MONITOR"
+    "${EXTRA[@]}" "$URL/?monitor=$MONITOR"
   sleep 3
 done

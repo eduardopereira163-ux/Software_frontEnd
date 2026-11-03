@@ -2,7 +2,8 @@
 # Instala o ConecTorno completo no Raspberry Pi:
 #   1. servidor como serviço (sobe sozinho ao ligar o Pi);
 #   2. Wi-Fi próprio do Pi (Access Point), sempre ligado, para os celulares enviarem arquivos;
-#   3. tela deste Pi em modo quiosque mostrando um monitor (opcional).
+#   3. tela deste Pi em modo quiosque mostrando um monitor (opcional), SEM área de trabalho:
+#      o Pi liga em modo texto e o Chromium abre em tela cheia dentro do cage.
 # Uso (como usuário normal, sem sudo, com o Pi ainda ligado à internet):
 #   ./instalar.sh                  → servidor na porta 80 e esta tela como Monitor 1
 #   ./instalar.sh 80 2             → esta tela como Monitor 2
@@ -32,6 +33,8 @@ passo "Instalando programas de apoio (conversor de PDF e navegador)"
 PACOTES=""
 command -v pdftoppm >/dev/null || PACOTES="$PACOTES poppler-utils"
 command -v curl >/dev/null || PACOTES="$PACOTES curl"
+# cage: mostra só o navegador em tela cheia, sem área de trabalho.
+[ "$MONITOR" = "sem-monitor" ] || command -v cage >/dev/null || PACOTES="$PACOTES cage"
 PRECISA_NAVEGADOR=0
 if [ "$MONITOR" != "sem-monitor" ] && ! command -v chromium-browser >/dev/null && ! command -v chromium >/dev/null; then
   PRECISA_NAVEGADOR=1
@@ -62,8 +65,8 @@ Environment=CONECTORNO_PORTA=$PORTA
 ExecStart=/usr/bin/env python3 $PASTA/servidor/servidor.py
 Restart=always
 RestartSec=3
-# Permite usar a porta 80 sem rodar como root.
-AmbientCapabilities=CAP_NET_BIND_SERVICE
+# Permite usar a porta 80 e acertar o relógio do Pi pela hora do celular, sem rodar como root.
+AmbientCapabilities=CAP_NET_BIND_SERVICE CAP_SYS_TIME
 
 [Install]
 WantedBy=multi-user.target
@@ -152,16 +155,64 @@ else
   echo "Access Point \"$AP_NOME\" configurado; liga sozinho a cada reinício."
 fi
 
+TELA=conectorno-tela
 if [ "$MONITOR" != "sem-monitor" ]; then
-  passo "Configurando esta tela como Monitor $MONITOR (modo quiosque)"
+  passo "Configurando esta tela como Monitor $MONITOR (quiosque sem área de trabalho)"
+  command -v cage >/dev/null || erro "o cage não foi instalado (precisa de internet): sudo apt install cage"
   chmod +x "$PASTA/monitor/"*.sh
-  "$PASTA/monitor/configurar-monitor.sh" "$URL" "$MONITOR"
-  # O quiosque abre junto com a área de trabalho: entra nela sem senha e não deixa a tela apagar.
+  # Acesso à placa de vídeo, à tela e ao teclado/mouse.
+  for grupo in video render input; do
+    if getent group "$grupo" >/dev/null; then sudo usermod -aG "$grupo" "$USUARIO"; fi
+  done
+  # Sessão de login própria para a tela (o cage precisa dela para usar a placa de vídeo).
+  sudo tee /etc/pam.d/$TELA >/dev/null <<'FIM'
+auth    required pam_unix.so nullok
+account required pam_unix.so
+session required pam_unix.so
+session required pam_systemd.so
+FIM
+  sudo tee /etc/systemd/system/$TELA.service >/dev/null <<FIM
+[Unit]
+Description=ConecTorno - tela do Monitor $MONITOR em modo quiosque (sem área de trabalho)
+After=systemd-user-sessions.service $SERVICO.service getty@tty1.service
+Wants=$SERVICO.service
+# Ocupa o lugar do login em modo texto na tela principal (tty1).
+Conflicts=getty@tty1.service
+
+[Service]
+User=$USUARIO
+PAMName=$TELA
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+StandardInput=tty-fail
+StandardOutput=journal
+StandardError=journal
+UtmpIdentifier=tty1
+UtmpMode=user
+# -s permite trocar de terminal (Ctrl+Alt+F2) para fazer manutenção.
+ExecStart=/usr/bin/cage -s -- $PASTA/monitor/iniciar-monitor.sh $URL $MONITOR
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+FIM
+  sudo systemctl daemon-reload
+  sudo systemctl enable $TELA >/dev/null
+  # Desliga a área de trabalho: o Pi passa a ligar em modo texto e só a tela do quiosque aparece.
   if command -v raspi-config >/dev/null; then
-    sudo raspi-config nonint do_boot_behaviour B4 \
-      || echo "AVISO: ative o login automático: sudo raspi-config → System Options → Boot / Auto Login → Desktop Autologin"
-    sudo raspi-config nonint do_blanking 1 || true
+    sudo raspi-config nonint do_boot_behaviour B1 || sudo systemctl set-default multi-user.target
+  else
+    sudo systemctl set-default multi-user.target
   fi
+  # Tira a abertura automática antiga (de quando o quiosque rodava dentro da área de trabalho).
+  rm -f "$HOME/.config/autostart/conectorno-monitor.desktop"
+  echo "Ao ligar, o Pi vai direto para a tela do Monitor $MONITOR, sem área de trabalho."
+  echo "Manutenção: Ctrl+Alt+F2 abre um terminal de login; Ctrl+Alt+F1 volta para a tela."
+else
+  sudo systemctl disable $TELA 2>/dev/null || true
 fi
 
 passo "Pronto!"
@@ -183,4 +234,6 @@ echo
 echo "Comandos úteis:"
 echo "   sudo systemctl status $SERVICO       (situação do servidor)"
 echo "   sudo journalctl -u $SERVICO -f       (registro em tempo real)"
+echo "   sudo journalctl -u $TELA -n 50   (erros da tela do monitor)"
+echo "   sudo systemctl set-default graphical.target && sudo systemctl disable $TELA   (voltar à área de trabalho)"
 echo "   Dados e arquivos enviados ficam em: $PASTA/dados"

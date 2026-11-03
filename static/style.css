@@ -42,10 +42,8 @@ h1, h2, p { margin: 0; }
 
 /* MARCA */
 .brand { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; }
-.brand-logo {
-  display: inline-block; padding: 3px 8px; border-radius: 6px;
-  background: #fff; color: var(--blue); font-weight: 900; font-style: italic; letter-spacing: .5px; font-size: 15px;
-}
+/* Logo do SENAI (azul e laranja, fundo transparente): sobre o azul, vai numa plaquinha branca. */
+.brand-logo { display: block; flex: none; height: 30px; width: auto; padding: 5px 8px; border-radius: 6px; background: #fff; }
 .brand-name { font-weight: 700; font-size: 18px; }
 
 /* BOTÕES */
@@ -84,7 +82,7 @@ h1, h2, p { margin: 0; }
   width: 100%; max-width: 380px; padding: 32px 24px; border-radius: var(--radius);
   background: var(--surface); text-align: center; display: grid; gap: 14px; justify-items: center;
 }
-.startup-card .brand-logo { background: var(--blue); color: #fff; }
+.startup-card .brand-logo { height: 48px; padding: 0; background: none; }
 .startup-card p { color: var(--muted); }
 .spinner {
   width: 36px; height: 36px; border-radius: 50%;
@@ -249,34 +247,53 @@ textarea:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px
 }
 .viewer-message.error { color: var(--red); background: #fff; }
 
-/* TELA DO MONITOR (torno): desenho ocupa tudo; observação em destaque ao lado */
-.monitor-view { height: 100vh; height: 100dvh; background: #111827; color: #fff; }
+/* TELA DO MONITOR (torno): sempre horizontal. Cabeçalho branco com logo e relógio, desenho ocupando
+   a largura toda e, só quando há observação, uma faixa na parte de baixo. */
+.monitor-view { height: 100vh; height: 100dvh; background: #111827; color: var(--text); cursor: none; overflow: hidden; }
 .monitor-bar {
-  display: flex; align-items: center; gap: 16px; height: 56px; padding: 0 20px; flex: none;
-  background: var(--blue); font-size: 20px;
+  display: flex; align-items: center; gap: 24px; height: 84px; padding: 0 28px; flex: none;
+  background: #fff; border-bottom: 6px solid var(--blue);
 }
-.monitor-project { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .85; font-size: 18px; }
+.monitor-logo { height: 46px; width: auto; flex: none; }
+.monitor-title {
+  flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 18px;
+  padding-left: 24px; border-left: 2px solid var(--border);
+}
+.monitor-title strong { font-size: 30px; color: var(--blue); white-space: nowrap; }
+.monitor-project { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 22px; }
 .connection {
-  padding: 4px 12px; border-radius: 999px; background: rgba(255, 255, 255, .15); font-size: 14px; font-weight: 700; white-space: nowrap;
+  flex: none; padding: 6px 14px; border-radius: 999px; background: var(--green-soft); color: var(--green);
+  font-size: 15px; font-weight: 700; white-space: nowrap;
 }
-.connection.disconnected { background: var(--red); animation: blink 1.4s ease-in-out infinite; }
+.connection.disconnected { background: var(--red); color: #fff; animation: blink 1.4s ease-in-out infinite; }
 @keyframes blink { 50% { opacity: .6; } }
+.monitor-clock { flex: none; display: grid; justify-items: end; line-height: 1.05; color: var(--blue); }
+.monitor-clock strong { font-size: 40px; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+.monitor-clock span { font-size: 15px; color: var(--muted); }
 .monitor-main { flex: 1; min-height: 0; display: flex; }
 .monitor-viewer { flex: 1; min-width: 0; background: #e5e7eb; }
-.monitor-viewer .viewer-message { color: #4b5563; font-size: 24px; }
-.monitor-note {
-  width: min(32%, 520px); flex: none; display: flex; flex-direction: column; gap: 12px; padding: 24px; overflow: auto;
-  background: var(--note); color: var(--text); border-left: 8px solid var(--orange);
+.monitor-viewer .viewer-message { color: #4b5563; font-size: 28px; }
+/* Várias páginas de PDF ficam lado a lado e encolhem para caber na tela (até 4; acima disso, rola para o lado). */
+.monitor-viewer .viewer-pages { flex-direction: row; align-items: stretch; justify-content: safe center; gap: 12px; padding: 12px; }
+.monitor-viewer .viewer-pages img {
+  flex: 1 1 0; min-width: calc(25% - 9px); height: 100%; max-width: 100%;
+  object-fit: contain; background: none; box-shadow: none;
 }
-.monitor-note h2 { font-size: 20px; color: var(--orange-dark); text-transform: uppercase; letter-spacing: .5px; }
-.monitor-note p { font-size: clamp(22px, 2.2vw, 34px); line-height: 1.35; font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; }
-.monitor-note small { color: var(--muted); font-size: 15px; }
+.monitor-note {
+  flex: none; display: flex; align-items: center; gap: 24px; max-height: 30vh; padding: 16px 28px;
+  background: var(--note); border-top: 8px solid var(--orange);
+}
+.monitor-note-label {
+  flex: none; color: var(--orange-dark); font-size: 16px; font-weight: 800; line-height: 1.2;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.monitor-note p {
+  flex: 1; min-width: 0; max-height: calc(30vh - 32px); overflow: auto;
+  font-size: clamp(24px, 2.4vw, 40px); line-height: 1.3; font-weight: 700; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.monitor-note small { flex: none; align-self: flex-end; color: var(--muted); font-size: 15px; }
 .monitor-note.flash { animation: flash 1s ease-in-out 4; }
 @keyframes flash { 50% { background: #ffd47a; } }
-@media (orientation: portrait) {
-  .monitor-main { flex-direction: column; }
-  .monitor-note { width: auto; max-height: 38%; border-left: 0; border-top: 8px solid var(--orange); }
-}
 
 /* TELAS MAIORES: abas sobem para o cabeçalho e o conteúdo ganha colunas */
 @media (min-width: 720px) {

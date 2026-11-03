@@ -467,6 +467,8 @@
     setVisible(teacherApp);
     route();
     refreshState().catch((e) => toast(e.message, true));
+    // O Pi não guarda a hora sem internet: o celular do professor acerta o relógio dele (e o das telas).
+    postJson('/api/relogio', { agora: Date.now() }).catch(() => {});
     clearInterval(window.teacherRefreshTimer);
     window.teacherRefreshTimer = setInterval(() => {
       if (!document.hidden) refreshState().catch(() => {});
@@ -499,6 +501,15 @@
     const connection = $('#monitorConnection');
     const noteBox = $('#monitorNote');
     let lastNote = null;
+    let clockOffset = 0; // diferença entre o relógio do servidor (Pi) e o deste aparelho
+
+    // Relógio do cabeçalho: segue a hora do Pi, para todas as telas mostrarem a mesma hora.
+    function tickClock() {
+      const now = new Date(Date.now() + clockOffset);
+      $('#clockTime').textContent = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const date = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+      $('#clockDate').textContent = date.charAt(0).toUpperCase() + date.slice(1);
+    }
 
     function setConnected(ok) {
       connection.textContent = ok ? 'Conectado' : 'Sem conexão com o servidor';
@@ -518,12 +529,13 @@
         const result = await api(`/api/monitor/${id}/display`);
         const monitor = result.monitor || {};
         const project = result.project;
+        if (Number.isFinite(result.server_time)) clockOffset = result.server_time - Date.now();
         setProjectViewer($('#monitorPdfViewer'), project, { monitor: true });
         $('#monitorProjectName').textContent = project?.name || 'Aguardando projeto do professor';
         const note = monitor.teacher_note || '';
         const history = Array.isArray(monitor.teacher_history) ? monitor.teacher_history : [];
         const latest = history[history.length - 1];
-        noteBox.hidden = !note;
+        noteBox.hidden = !note; // a faixa de observação só aparece quando o professor escreveu algo
         $('#teacherFeedbackText').textContent = note;
         $('#monitorNoteTime').textContent = latest?.created_at ? `Enviada em ${fmtDate(latest.created_at)}` : '';
         if (lastNote !== null && note && note !== lastNote) {
@@ -538,6 +550,8 @@
       }
     }
 
+    tickClock();
+    setInterval(tickClock, 1000);
     heartbeat();
     refreshMonitor();
     setInterval(heartbeat, 10000);

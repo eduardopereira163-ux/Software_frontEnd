@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#20468f">
   <title>ConecTorno - SENAI</title>
   <link rel="icon" href="/images/Senai.png">
-  <link rel="stylesheet" href="/style.css?v=20261030-novo-app">
+  <link rel="stylesheet" href="/style.css?v=20261103-horizontal">
 </head>
 <body>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -15,7 +15,7 @@
   <!-- Tela exibida enquanto o painel entra sozinho no servidor (não há login manual). -->
   <section id="startupView" class="view startup-view">
     <div class="startup-card">
-      <span class="brand-logo">SENAI</span>
+      <img class="brand-logo" src="/images/senai-logo.png" alt="SENAI">
       <h1>ConecTorno</h1>
       <div class="spinner" id="startupSpinner" aria-hidden="true"></div>
       <p id="startupMessage">Conectando ao servidor...</p>
@@ -26,7 +26,7 @@
   <!-- Painel do professor: enviar arquivos e acompanhar os monitores. -->
   <section id="teacherApp" class="view" hidden>
     <header class="topbar">
-      <a class="brand" href="#enviar"><span class="brand-logo">SENAI</span><span class="brand-name">ConecTorno</span></a>
+      <a class="brand" href="#enviar"><img class="brand-logo" src="/images/senai-logo.png" alt="SENAI"><span class="brand-name">ConecTorno</span></a>
       <nav class="tabs" aria-label="Navegação principal">
         <a class="tab" href="#enviar" data-page="send">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"/></svg>
@@ -130,24 +130,31 @@
     <footer class="footer">Desenvolvido pela turma de Desenvolvimento de Sistemas - Vespertino · SENAI</footer>
   </section>
 
-  <!-- Tela do torno (modo quiosque): desenho em tela cheia e observação do professor. -->
+  <!-- Tela do torno (modo quiosque, horizontal): cabeçalho com logo e relógio, desenho ocupando a largura toda
+       e, só quando o professor escreveu algo, a observação numa faixa na parte de baixo. -->
   <section id="monitorView" class="view monitor-view" hidden>
     <header class="monitor-bar">
-      <span class="brand-logo">SENAI</span>
-      <strong id="monitorHeading">Monitor 1</strong>
-      <span id="monitorProjectName" class="monitor-project">Aguardando projeto do professor</span>
+      <img class="monitor-logo" src="/images/senai-logo.png" alt="SENAI">
+      <div class="monitor-title">
+        <strong id="monitorHeading">Monitor 1</strong>
+        <span id="monitorProjectName" class="monitor-project">Aguardando projeto do professor</span>
+      </div>
       <span id="monitorConnection" class="connection" aria-live="polite">Conectando...</span>
+      <div class="monitor-clock" aria-label="Relógio">
+        <strong id="clockTime">--:--</strong>
+        <span id="clockDate"></span>
+      </div>
     </header>
     <main class="monitor-main">
       <div id="monitorPdfViewer" class="viewer monitor-viewer"></div>
-      <aside id="monitorNote" class="monitor-note" hidden>
-        <h2>Observação do professor</h2>
-        <p id="teacherFeedbackText"></p>
-        <small id="monitorNoteTime"></small>
-      </aside>
     </main>
+    <footer id="monitorNote" class="monitor-note" hidden>
+      <div class="monitor-note-label">Observação<br>do professor</div>
+      <p id="teacherFeedbackText"></p>
+      <small id="monitorNoteTime"></small>
+    </footer>
   </section>
 
-  <script src="/app.js?v=20261030-novo-app" defer></script>
+  <script src="/app.js?v=20261103-horizontal" defer></script>
 </body>
 </html>

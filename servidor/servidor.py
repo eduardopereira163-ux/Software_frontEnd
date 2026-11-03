@@ -333,7 +333,9 @@ class Requisicao(BaseHTTPRequestHandler):
                 with estado.trava:
                     monitor = estado.monitor_json(numero)
                     projeto = monitor['project'] or dados['projeto']
-                return self.responder(200, {'ok': True, 'monitor': monitor, 'project': projeto})
+                # A hora do servidor vai junto: todas as telas mostram o mesmo relógio (o do Pi).
+                return self.responder(200, {'ok': True, 'monitor': monitor, 'project': projeto,
+                                            'server_time': int(time.time() * 1000)})
 
         # Rotas do professor: exigem sessão e, quando alteram algo, o token anti-CSRF.
         if not sessao:
@@ -349,6 +351,8 @@ class Requisicao(BaseHTTPRequestHandler):
             with estado.trava:
                 estado.sessoes.pop(sessao['sid'], None)
             return self.responder(200, {'ok': True})
+        if metodo == 'POST' and caminho == '/api/relogio':
+            return self.acertar_relogio(json_do_corpo())
         if metodo == 'POST' and caminho == '/api/upload':
             return self.publicar(corpo)
         if metodo == 'POST' and caminho == '/api/project/delete':
@@ -392,6 +396,25 @@ class Requisicao(BaseHTTPRequestHandler):
                 estado.salvar()
             return self.responder(200, {'ok': True, 'mensagem': 'Observação apagada.'})
         return self.responder(404, {'ok': False, 'erro': 'Rota não encontrada.'})
+
+    def acertar_relogio(self, pedido):
+        """O Pi não tem bateria de relógio nem internet: acerta a hora pelo celular do professor ao abrir o painel."""
+        try:
+            hora_celular = float(pedido.get('agora')) / 1000
+        except (TypeError, ValueError):
+            return self.responder(400, {'ok': False, 'erro': 'Hora inválida.'})
+        diferenca = hora_celular - time.time()
+        if abs(diferenca) < 60 or hora_celular < 1_700_000_000:  # já está certo, ou o celular também está errado
+            return self.responder(200, {'ok': True, 'ajustado': False})
+        if not hasattr(time, 'clock_settime'):
+            return self.responder(200, {'ok': True, 'ajustado': False})
+        try:
+            time.clock_settime(time.CLOCK_REALTIME, hora_celular)  # precisa de CAP_SYS_TIME (dado pelo serviço)
+        except OSError as erro:
+            log(f'Não foi possível acertar o relógio pelo celular ({erro}).')
+            return self.responder(200, {'ok': True, 'ajustado': False})
+        log(f'Relógio acertado pelo celular do professor ({diferenca:+.0f} s).')
+        return self.responder(200, {'ok': True, 'ajustado': True})
 
     def publicar(self, corpo):
         """Guarda o arquivo enviado, converte PDF em imagens e publica para todos ou um monitor."""
