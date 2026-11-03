@@ -38,6 +38,16 @@ EXTENSOES = {
 }
 ONLINE_SEGUNDOS = 30  # monitor sem sinal há mais tempo que isso aparece como desligado
 COOKIE = 'conectorno_sessao'
+# Endereços que celulares e computadores consultam para saber se o Wi-Fi tem internet.
+# O hotspot do Pi não tem, e muitos celulares derrubam o Wi-Fi quando esse teste falha.
+# O instalar.sh faz o DNS do hotspot apontar esses domínios para o Pi, e o servidor responde "tem internet".
+SUCESSO_APPLE = '<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>'
+TESTES_DE_INTERNET = {
+    '/generate_204': (204, ''), '/gen_204': (204, ''),                          # Android
+    '/hotspot-detect.html': (200, SUCESSO_APPLE),                               # iPhone, Mac
+    '/library/test/success.html': (200, SUCESSO_APPLE),
+    '/connecttest.txt': (200, 'Microsoft Connect Test'), '/ncsi.txt': (200, 'Microsoft NCSI'),  # Windows
+}
 
 mimetypes.add_type('text/javascript', '.mjs')
 mimetypes.add_type('text/javascript', '.js')
@@ -194,6 +204,8 @@ class Requisicao(BaseHTTPRequestHandler):
                 return self.api(metodo, caminho)
             if metodo != 'GET':
                 return self.responder(405, {'ok': False, 'erro': 'Método não permitido.'})
+            if caminho in TESTES_DE_INTERNET:
+                return self.responder_teste_internet(caminho)
             if caminho.startswith('/uploads/'):
                 return self.enviar_arquivo(estado.uploads, caminho[len('/uploads/'):], cache=True)
             if caminho == '/' or re.fullmatch(r'/monitor/[1-6]/?', caminho):
@@ -219,6 +231,17 @@ class Requisicao(BaseHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-store')
         for nome, valor in cabecalhos:
             self.send_header(nome, valor)
+        self.end_headers()
+        self.wfile.write(corpo)
+
+    def responder_teste_internet(self, caminho):
+        status, texto = TESTES_DE_INTERNET[caminho]
+        corpo = texto.encode()
+        self.send_response(status)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Cache-Control', 'no-store')
+        if corpo:
+            self.send_header('Content-Length', str(len(corpo)))
         self.end_headers()
         self.wfile.write(corpo)
 

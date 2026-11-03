@@ -40,17 +40,21 @@ O instalador (não use `sudo`; ele pede a senha quando precisar):
 
 1. instala o `poppler-utils` (converte PDF em imagens) e o Chromium, se faltarem;
 2. cria o serviço **`conectorno`**, que sobe o servidor **sozinho sempre que o Pi liga** (porta 80);
-3. configura a tela do Pi para abrir o **Monitor 1** em tela cheia, esperando o servidor subir;
-4. mostra o endereço para abrir no celular.
+3. cria o **Wi-Fi próprio do Pi** (Access Point): pergunta o nome da rede e a senha, define o país do Wi-Fi (BR) e faz as outras redes Wi-Fi pararem de conectar sozinhas;
+4. configura a tela do Pi para abrir o **Monitor 1** em tela cheia, com login automático na área de trabalho e sem a tela apagar;
+5. mostra a rede, a senha e o endereço para abrir no celular.
 
-Depois, ative o login automático na área de trabalho (só na primeira vez) e reinicie:
+Depois, reinicie:
 
 ```bash
-sudo raspi-config   # System Options → Boot / Auto Login → Desktop Autologin
 sudo reboot
 ```
 
-Ao ligar, o Pi sobe o servidor e a tela abre sozinha mostrando o Monitor 1.
+Ao ligar, o Pi liga o Wi-Fi dele, sobe o servidor e a tela abre sozinha no Monitor 1, **mostrando o que estava no ar antes de desligar** (fica salvo em `dados/estado.json`). O painel fica em `http://10.42.0.1`.
+
+> O Wi-Fi do Pi só liga no reinício, então a instalação inteira roda com internet. Depois disso a antena fica só como Access Point: para ter internet de novo (atualizar), ligue um **cabo de rede**.
+
+Para não responder perguntas: `WIFI_NOME=Torno1 WIFI_SENHA=minhasenha ./instalar.sh`. Rodar o instalador de novo mantém a rede e a senha já criadas (ou troca, se você passar `WIFI_NOME`/`WIFI_SENHA`).
 
 **Variações:**
 
@@ -60,8 +64,11 @@ Ao ligar, o Pi sobe o servidor e a tela abre sozinha mostrando o Monitor 1.
 | `./instalar.sh 80 2` | tela do Pi = Monitor 2 |
 | `./instalar.sh 80 sem-monitor` | só o servidor, sem tela |
 | `./instalar.sh 5000` | servidor na porta 5000 (endereço vira `http://IP:5000`) |
+| `SEM_WIFI=1 ./instalar.sh` | não cria nem altera o Wi-Fi do Pi |
 
 ### Atualizar
+
+Com um cabo de rede ligado no Pi (o Wi-Fi dele não tem internet):
 
 ```bash
 cd ~/Software_frontEnd
@@ -130,6 +137,7 @@ Abra `http://localhost:5000` (painel) e `http://localhost:5000/?monitor=1` (moni
 | Sintoma | Causa provável |
 |---|---|
 | Instalador diz "o servidor não respondeu" | Outro programa usa a porta 80. Veja `sudo ss -tlnp \| grep :80` e pare-o, ou use `./instalar.sh 5000`. Detalhes: `sudo journalctl -u conectorno -n 50`. |
+| Rede Wi-Fi do Pi não aparece | Veja o erro com `sudo nmcli con up ConecTorno`. Wi-Fi bloqueado: `sudo rfkill unblock wifi`. Precisa do Raspberry Pi OS com NetworkManager (não o *Legacy*). |
 | Celular não abre o painel | Celular fora do Wi-Fi do Pi, ou endereço errado. Confira o IP com `hostname -I` no Pi. |
 | Tela do Pi não abre sozinha | Falta o login automático na área de trabalho (`raspi-config`). Teste à mão: `~/.local/share/conectorno/iniciar-monitor.sh http://localhost 1`. |
 | Tela apaga depois de um tempo | `sudo raspi-config` → *Display Options* → *Screen Blanking* → *No*. |
