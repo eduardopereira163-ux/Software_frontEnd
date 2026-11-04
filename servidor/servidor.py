@@ -100,9 +100,18 @@ def ler_multipart(tipo, corpo):
     return campos
 
 
+def achar_pdftoppm():
+    """pdftoppm do sistema (Pi: poppler-utils) ou o portátil que vem no pacote do PC (pasta poppler/)."""
+    programa = shutil.which('pdftoppm')
+    if programa:
+        return programa
+    portateis = sorted((RAIZ / 'poppler').glob('**/bin/pdftoppm.exe'))
+    return str(portateis[0]) if portateis else None
+
+
 def converter_pdf(pdf, pasta):
     """Gera uma imagem PNG por página (até 30) para o monitor não depender do leitor de PDF."""
-    programa = shutil.which('pdftoppm')
+    programa = achar_pdftoppm()
     if not programa:
         return []
     pasta.mkdir(parents=True, exist_ok=True)
@@ -475,8 +484,8 @@ def main():
     endereco = f'http://localhost{"" if args.porta == 80 else f":{args.porta}"}'
     log(f'ConecTorno no ar em {endereco}  (monitor 1: {endereco}/?monitor=1)')
     log(f'Dados em {estado.pasta}')
-    if not shutil.which('pdftoppm'):
-        log('Aviso: pdftoppm não encontrado; PDFs serão mostrados sem conversão (instale poppler-utils).')
+    if not achar_pdftoppm():
+        log('Aviso: pdftoppm não encontrado; PDFs serão mostrados sem conversão (instale poppler-utils ou use o pacote do PC).')
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:

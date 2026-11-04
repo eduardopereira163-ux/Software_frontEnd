@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<!-- Página de espera do Raspberry (arquivo local): aparece enquanto o servidor no PC do professor não responde
+     e troca sozinha para a tela do monitor quando ele aparecer.
+     Aberta pelo iniciar-monitor.sh como aguardando.html?servidor=http://192.168.137.1:8080&monitor=1 -->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ConecTorno - aguardando</title>
+  <style>
+    :root { --blue: #20468f; --orange: #f04410; --muted: #5d6878; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+      padding: 24px; background: #fff; color: #16202e; cursor: none; text-align: center;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      border-top: 10px solid var(--blue);
+    }
+    img { height: 90px; width: auto; }
+    h1 { margin: 0; font-size: 40px; color: var(--blue); }
+    p { margin: 0; font-size: 24px; color: var(--muted); max-width: 900px; line-height: 1.4; }
+    .endereco { font-weight: 700; color: #16202e; }
+    .spinner {
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 6px solid #e8eef9; border-top-color: var(--orange); animation: gira .9s linear infinite;
+    }
+    @keyframes gira { to { transform: rotate(360deg); } }
+    small { font-size: 18px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <img src="../static/images/senai-logo.png" alt="SENAI">
+  <h1 id="titulo">Monitor 1</h1>
+  <div class="spinner" aria-hidden="true"></div>
+  <p>Aguardando o computador do professor<br><span id="endereco" class="endereco"></span></p>
+  <small>No computador do professor: ligue o hotspot e abra o "Iniciar ConecTorno".<br><span id="tentativa"></span></small>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var servidor = (params.get('servidor') || 'http://192.168.137.1:8080').replace(/\/+$/, '');
+      var monitor = params.get('monitor') || '1';
+      var tentativas = 0;
+      document.getElementById('titulo').textContent = 'Monitor ' + monitor;
+      document.getElementById('endereco').textContent = servidor.replace(/^https?:\/\//, '');
+
+      // Testa o servidor carregando uma imagem dele (funciona a partir de um arquivo local, sem bloqueio do navegador).
+      function testar() {
+        var img = new Image();
+        var feito = false; // cada tentativa termina uma vez só (sucesso, erro ou demora)
+        function fim(ok) {
+          if (feito) return;
+          feito = true;
+          clearTimeout(desistir);
+          if (ok) location.replace(servidor + '/?monitor=' + encodeURIComponent(monitor));
+          else falhou();
+        }
+        var desistir = setTimeout(function () { fim(false); }, 4000);
+        img.onload = function () { fim(true); };
+        img.onerror = function () { fim(false); };
+        img.src = servidor + '/images/senai-logo.png?t=' + Date.now();
+      }
+      function falhou() {
+        tentativas += 1;
+        document.getElementById('tentativa').textContent = 'Tentando conectar... (' + tentativas + ')';
+        setTimeout(testar, 3000);
+      }
+      testar();
+    })();
+  </script>
+</body>
+</html>

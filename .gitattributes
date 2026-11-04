@@ -1,2 +1,6 @@
 # Scripts executados no Raspberry precisam de quebra de linha Unix.
 *.sh text eol=lf
+# Arquivos do pacote do PC (Windows) precisam de quebra de linha do Windows.
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+pc/*.txt text eol=crlf

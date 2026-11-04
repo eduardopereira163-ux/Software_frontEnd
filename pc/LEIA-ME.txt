@@ -1,0 +1,42 @@
+﻿CONECTORNO - COMPUTADOR DO PROFESSOR
+====================================
+
+Nada é instalado: esta pasta já traz tudo (Python portátil e conversor de PDF).
+Pode ficar na Área de Trabalho ou num pendrive. Os projetos enviados ficam na pasta "dados".
+
+
+CONFIGURAÇÃO (SÓ NA PRIMEIRA VEZ)
+---------------------------------
+1. Configurações > Rede e Internet > Hotspot móvel > Editar (ou "Propriedades"):
+     Nome da rede:  ConecTorno
+     Senha:         só letras e números (ex.: senai12345)
+     Banda:         2,4 GHz   (o Raspberry Pi 3 não enxerga 5 GHz)
+   Use exatamente o mesmo nome e senha configurados no Raspberry.
+
+2. Ainda em Hotspot móvel, DESLIGUE a "Economia de energia"
+   (senão o Windows desliga o hotspot quando nenhum aparelho está conectado).
+
+3. Abra "Iniciar ConecTorno". Se o Windows perguntar sobre o Firewall,
+   marque as redes e clique em "Permitir acesso".
+   Se pedir senha de administrador, peça ao TI para fazer isso UMA vez.
+
+4. Teste: conecte o celular na rede ConecTorno e abra http://192.168.137.1:8080
+   Se o painel abrir no celular, os Raspberry também vão conseguir.
+   Se não abrir, o Firewall está bloqueando: chame o TI (passo 3).
+
+
+TODA AULA
+---------
+1. Computador com internet (cabo ou Wi-Fi da escola).
+2. Abra "Iniciar ConecTorno": ele liga o hotspot, sobe o sistema e abre o painel.
+3. Ligue os Raspberry: em até 1 minuto cada tela entra sozinha e mostra o último projeto.
+4. Deixe a janela preta aberta durante a aula. Fechar a janela encerra o sistema.
+
+
+PROBLEMAS
+---------
+- Tela do torno mostra "Aguardando o computador do professor":
+  o hotspot está desligado, com outro nome/senha, em 5 GHz, ou o "Iniciar ConecTorno" está fechado.
+- "Hotspot não ligou": o computador precisa estar com internet; ou ligue à mão em
+  Configurações > Rede e Internet > Hotspot móvel.
+- Celular conecta mas não abre o painel: Firewall (ver passo 3 da configuração).

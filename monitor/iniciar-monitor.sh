@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Abre a tela de um monitor do ConecTorno em modo quiosque, assim que o servidor responder.
+# Abre a tela de um monitor do ConecTorno em modo quiosque (mostra uma página de espera até o servidor responder).
 # Uso: ./iniciar-monitor.sh <url-do-servidor> [numero-do-monitor]
 # Exemplo: ./iniciar-monitor.sh http://localhost 1
 set -uo pipefail
@@ -13,10 +13,18 @@ URL="${URL%/}"
 exec 9>"${XDG_RUNTIME_DIR:-/tmp}/conectorno-monitor.lock"
 flock -n 9 || exit 0
 
-# Espera o servidor subir (no boot ele pode demorar alguns segundos a mais que a tela).
-until curl -s -o /dev/null --max-time 3 "$URL/api/monitor/$MONITOR/display"; do
-  sleep 3
-done
+# Enquanto o servidor não responde (ex.: o PC do professor ainda não abriu o ConecTorno), a tela mostra
+# a página de espera, que entra no monitor sozinha quando o servidor aparecer.
+# Sem a página (script copiado para outro lugar), espera aqui mesmo antes de abrir o navegador.
+ESPERA="$(cd "$(dirname "$0")" && pwd)/aguardando.html"
+if [ -f "$ESPERA" ]; then
+  ENDERECO="file://$ESPERA?servidor=$URL&monitor=$MONITOR"
+else
+  until curl -s -o /dev/null --max-time 3 "$URL/api/monitor/$MONITOR/display"; do
+    sleep 3
+  done
+  ENDERECO="$URL/?monitor=$MONITOR"
+fi
 
 # Evita que a tela apague ou entre em descanso (só tem efeito em sessões X11).
 xset s off -dpms s noblank 2>/dev/null || true
@@ -31,6 +39,6 @@ EXTRA=()
 while true; do
   "$NAVEGADOR" --kiosk --incognito --noerrdialogs --disable-infobars --no-first-run \
     --disable-session-crashed-bubble --check-for-update-interval=31536000 --password-store=basic \
-    "${EXTRA[@]}" "$URL/?monitor=$MONITOR"
+    "${EXTRA[@]}" "$ENDERECO"
   sleep 3
 done

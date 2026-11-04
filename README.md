@@ -1,30 +1,118 @@
 # ConecTorno
 
-Sistema do SENAI para a oficina de tornos: o professor envia desenhos técnicos (PDF ou foto) e observações **pelo celular**, e cada torno tem uma tela (**monitor**) que mostra o que o professor mandou.
+Sistema do SENAI para a oficina de tornos: o professor envia desenhos técnicos (PDF ou foto) e observações, e cada torno tem uma tela (**monitor**) que mostra o que o professor mandou.
 
-Tudo roda no **Raspberry Pi**: ele emite o Wi-Fi, roda o servidor e, com uma tela ligada no HDMI, já funciona como **Monitor 1** em modo quiosque.
+**Formato atual:** o sistema roda no **computador do professor** (sem instalar nada: é uma pasta copiada) e o **Raspberry Pi é só a tela** do torno. O PC liga o *Hotspot móvel* do Windows; o Pi entra nessa rede sozinho e abre o monitor em tela cheia.
 
 ```
- Celular do professor ──Wi-Fi do Pi──▶ Raspberry Pi (servidor) ──HDMI──▶ Tela do torno (Monitor 1)
-                                              ▲
-                     Outras telas (Monitor 2 a 6) pelo Wi-Fi, se houver
+ PC do professor (Hotspot móvel + "Iniciar ConecTorno")
+   │  rede Wi-Fi do PC  (o PC é sempre 192.168.137.1)
+   ├──▶ Raspberry Pi ──HDMI──▶ Tela do torno (Monitor 1)
+   ├──▶ outros Raspberry (Monitor 2 a 6), se houver
+   └──▶ celular do professor (opcional): http://192.168.137.1:8080
 ```
 
 ## Estrutura
 
 ```
 Software_frontEnd/
-├── instalar.sh              ← instala TUDO no Pi (servidor + tela do monitor)
+├── pc/                      ← pacote do computador do professor
+│   ├── Iniciar ConecTorno.bat   (o professor abre este)
+│   ├── ligar-hotspot.ps1        (liga o Hotspot móvel sem administrador)
+│   ├── LEIA-ME.txt              (instruções para o professor)
+│   └── montar-pacote.ps1        (gera o pacote: baixa Python portátil e conversor de PDF)
+├── instalar-tela.sh         ← prepara o Raspberry como tela (entra no hotspot do PC)
 ├── servidor/servidor.py     ← servidor (Python, sem dependências externas)
 ├── static/                  ← o site: painel do professor e tela do monitor
-├── monitor/                 ← abre a tela do monitor em tela cheia ao ligar
-│   ├── configurar-monitor.sh
-│   └── iniciar-monitor.sh
+├── monitor/                 ← tela cheia no Raspberry
+│   ├── configurar-tela.sh       (liga sem área de trabalho e abre o monitor no cage)
+│   ├── iniciar-monitor.sh       (abre o Chromium; reabre se fechar)
+│   ├── aguardando.html          (tela de espera até o PC aparecer)
+│   └── configurar-monitor.sh    (para aparelhos com área de trabalho)
+├── instalar.sh              ← formato antigo: Pi como servidor e Access Point
 ├── dados/                   ← criada pelo servidor: projetos, observações e conta (não vai para o Git)
 └── docs/
 ```
 
-## Instalar no Raspberry Pi
+## 1. Gerar o pacote do PC (uma vez por versão)
+
+Num computador com internet (o de desenvolvimento), na pasta do projeto:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File pc\montar-pacote.ps1
+```
+
+Ele baixa o **Python portátil** oficial (um zip, sem instalador) e o **Poppler** portátil (converte PDF em imagens), junta com o sistema e gera `dist\ConecTorno-PC.zip`. Copie esse zip para o computador do professor (pendrive, e-mail…) e extraia, por exemplo, na Área de Trabalho.
+
+## 2. Computador do professor
+
+Nada é instalado. Siga o `LEIA-ME.txt` que vem no pacote. Resumo:
+
+**Só na primeira vez**
+1. *Configurações → Rede e Internet → Hotspot móvel → Editar*:
+   - nome **ConecTorno**;
+   - senha **só com letras e números**;
+   - banda **2,4 GHz** (o Pi 3 não enxerga 5 GHz).
+2. Na mesma tela, **desligue a "Economia de energia"**. Sem isso, o Windows desliga o hotspot quando não há aparelhos conectados.
+3. Abra **Iniciar ConecTorno**. Se o Windows perguntar sobre o Firewall, clique em **Permitir acesso**. Se ele pedir a senha de administrador, peça ao TI que faça isso **uma vez**.
+4. Faça um teste: conecte o celular na rede ConecTorno e abra `http://192.168.137.1:8080`.
+   - Se o painel abrir, os Raspberry também conseguem acessar o PC.
+   - Se não abrir, o Firewall está bloqueando (veja o passo 3).
+
+**Toda aula**
+1. Deixe o PC com internet; o Windows só liga o hotspot com uma conexão ativa.
+2. Abra **Iniciar ConecTorno**. Ele liga o hotspot, sobe o sistema e abre o painel em `http://localhost:8080`.
+3. Ligue os Raspberry. Cada tela entra sozinha e mostra o último projeto.
+4. **Deixe a janela preta aberta** durante a aula. Fechar a janela encerra o sistema.
+
+Para usar outro computador, configure o hotspot dele com **o mesmo nome e a mesma senha**: o Pi conecta nele também. Os projetos ficam na pasta `dados` do pacote.
+
+## 3. Raspberry Pi (tela do torno)
+
+**Antes de tudo, confira a energia.** Se o Pi reinicia sozinho, quase sempre a fonte é fraca. Com a tela aberta, rode:
+
+```bash
+vcgencmd get_throttled
+```
+
+O resultado precisa ser `0x0`. Qualquer outro valor indica falta de energia: use a fonte oficial, de 5 V / 2,5 A no Pi 3 ou de 3 A no Pi 4.
+
+Instalação (o Pi precisa de internet só durante ela, por cabo ou Wi-Fi):
+
+```bash
+cd ~/Software_frontEnd
+git pull
+chmod +x instalar-tela.sh
+./instalar-tela.sh        # Monitor 1  (./instalar-tela.sh 2 para o Monitor 2, etc.)
+sudo reboot
+```
+
+O script faz o seguinte:
+- pergunta o **nome e a senha do hotspot do PC** e recusa símbolos, porque o teclado do Pi vem em inglês e troca alguns deles;
+- **desfaz o formato antigo**: desliga o servidor do Pi e apaga o Access Point;
+- faz o Pi **entrar sozinho no hotspot** sempre que ele estiver ligado;
+- faz o Pi ligar **sem área de trabalho**, direto na tela do monitor.
+
+Enquanto o PC não está pronto, a tela mostra *"Aguardando o computador do professor"* e entra no monitor sozinha quando o PC aparecer. Se o PC desligar no meio da aula, a tela mostra *"Sem conexão com o servidor"* e volta sozinha.
+
+Sem perguntas: `WIFI_NOME=ConecTorno WIFI_SENHA=senai12345 ./instalar-tela.sh`. Outro endereço de servidor: `SERVIDOR=http://IP:PORTA ./instalar-tela.sh`.
+
+Manutenção no Pi: `Ctrl+Alt+F2` abre um terminal; `Ctrl+Alt+F1` volta para a tela.
+
+| Problema no Pi | O que fazer |
+|---|---|
+| Fica em "Aguardando o computador do professor" | No PC: hotspot ligado, em 2,4 GHz, com o mesmo nome/senha, e "Iniciar ConecTorno" aberto. No Pi: `nmcli dev status` deve mostrar `wlan0` conectado em `hotspot-professor`; `curl -I http://192.168.137.1:8080` testa se o Pi alcança o PC. |
+| Reinicia sozinho | Fonte fraca: veja `vcgencmd get_throttled` acima. |
+| Tela não abre (fica no login em modo texto) | `sudo journalctl -u conectorno-tela -n 50` mostra o erro. Depois de 10 falhas seguidas a tela devolve o login de propósito. |
+| Wi-Fi desligado | `sudo nmcli radio wifi on && sudo rfkill unblock wifi` |
+
+---
+
+## Alternativa: Pi como servidor e Access Point (formato antigo)
+
+O formato abaixo deixa tudo no Raspberry: ele cria a própria rede Wi-Fi e roda o servidor. Ele **não ficou estável** nos testes da oficina, porque o celular não conectava e o Pi reiniciava. Fica aqui só como referência.
+
+### Instalar no Raspberry Pi
 
 Pré-requisitos: Raspberry Pi OS (32 ou 64 bits, *Lite* ou com área de trabalho), uma tela no HDMI e internet **só durante a instalação** (para baixar o conversor de PDF, o Chromium e o `cage`, se faltarem).
 

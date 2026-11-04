@@ -5,3 +5,6 @@ Codigo.txt
 # Dados do servidor (projetos enviados, observações e conta): ficam só no Pi.
 dados/
 __pycache__/
+
+# Pacote do PC gerado por pc/montar-pacote.ps1 (Python e Poppler baixados): não vai para o Git.
+dist/
