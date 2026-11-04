@@ -18,12 +18,15 @@ if not exist "python\python.exe" (
 echo ==^> Ligando o Hotspot movel do Windows...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0ligar-hotspot.ps1"
 echo.
+echo ==^> Conferindo o Firewall do Windows (os Raspberry precisam acessar este computador)...
+rem Na primeira vez em cada PC, o Windows pede permissao de administrador; depois nao pergunta mais.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0liberar-firewall.ps1" -Programa "%~dp0python\python.exe" -Porta %PORTA%
+echo.
 echo ==^> Iniciando o ConecTorno
 echo    Painel neste computador:         http://localhost:%PORTA%
 echo    Painel no celular (no hotspot):  http://192.168.137.1:%PORTA%
 echo    Telas dos tornos (Raspberry):    entram sozinhas em http://192.168.137.1:%PORTA%
 echo.
-echo    Se o Windows perguntar sobre o Firewall, clique em "Permitir acesso".
 echo    Deixe esta janela aberta durante a aula. Para encerrar, feche-a.
 echo.
 

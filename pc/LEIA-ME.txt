@@ -16,9 +16,10 @@ CONFIGURAÇÃO (SÓ NA PRIMEIRA VEZ)
 2. Ainda em Hotspot móvel, DESLIGUE a "Economia de energia"
    (senão o Windows desliga o hotspot quando nenhum aparelho está conectado).
 
-3. Abra "Iniciar ConecTorno". Se o Windows perguntar sobre o Firewall,
-   marque as redes e clique em "Permitir acesso".
-   Se pedir senha de administrador, peça ao TI para fazer isso UMA vez.
+3. Abra "Iniciar ConecTorno". Na primeira vez ele libera o Firewall do Windows
+   (para os Raspberry acessarem este PC) e o Windows pede permissão de administrador.
+   Se você não tiver a senha de administrador, peça ao TI para abrir o
+   "Iniciar ConecTorno" UMA vez (botão direito > Executar como administrador).
 
 4. Teste: conecte o celular na rede ConecTorno e abra http://192.168.137.1:8080
    Se o painel abrir no celular, os Raspberry também vão conseguir.
@@ -40,3 +41,5 @@ PROBLEMAS
 - "Hotspot não ligou": o computador precisa estar com internet; ou ligue à mão em
   Configurações > Rede e Internet > Hotspot móvel.
 - Celular conecta mas não abre o painel: Firewall (ver passo 3 da configuração).
+- A tela do monitor aparece de lado no computador: ela gira 90° de propósito, porque
+  os monitores dos tornos ficam de pé. Para ver sem girar, acrescente &girar=0 no endereço.

@@ -659,16 +659,23 @@
   const url = new URL(window.location.href);
   const monitorId = url.searchParams.get('monitor') || (location.pathname.match(/^\/monitor\/([1-6])\/?$/) || [])[1];
   if (monitorId) {
-    // Monitor de pé numa tela deitada (Raspberry): ?girar=90 ou ?girar=270 gira a página inteira.
-    const rotate = ['90', '270'].includes(url.searchParams.get('girar')) ? url.searchParams.get('girar') : '';
-    if (rotate) document.documentElement.classList.add(`girar-${rotate}`);
-    // Tela em pé (girada, monitor de pé ou celular na vertical): layout em retrato.
+    // Os monitores dos tornos ficam de pé. Giro da página inteira:
+    //   ?girar=90 ou 270 → sempre gira (Raspberry com monitor de pé);  ?girar=0 → nunca gira;
+    //   sem ?girar       → gira 90° só quando a tela está deitada (tela em pé ou celular na vertical: não gira).
+    const rotateParam = url.searchParams.get('girar');
+    const fixedRotate = ['0', '90', '270'].includes(rotateParam) ? rotateParam : '';
     const portrait = window.matchMedia('(orientation: portrait)');
-    const updatePortrait = () => monitorView.classList.toggle('retrato', Boolean(rotate) || portrait.matches);
-    updatePortrait();
-    portrait.addEventListener('change', updatePortrait);
+    const updateRotation = () => {
+      const rotate = fixedRotate ? (fixedRotate === '0' ? '' : fixedRotate) : (portrait.matches ? '' : '90');
+      document.documentElement.classList.toggle('girar-90', rotate === '90');
+      document.documentElement.classList.toggle('girar-270', rotate === '270');
+      // Layout em retrato quando a página está girada ou a tela já está em pé.
+      monitorView.classList.toggle('retrato', Boolean(rotate) || portrait.matches);
+    };
+    updateRotation();
+    portrait.addEventListener('change', updateRotation);
     // Mantém o endereço simples, sem token ou credencial.
-    const query = `?monitor=${encodeURIComponent(monitorId)}${rotate ? `&girar=${rotate}` : ''}`;
+    const query = `?monitor=${encodeURIComponent(monitorId)}${fixedRotate ? `&girar=${fixedRotate}` : ''}`;
     window.history.replaceState({}, document.title, `${url.pathname}${query}`);
     startMonitor(monitorId);
   } else {

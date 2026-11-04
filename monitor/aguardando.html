@@ -50,8 +50,8 @@
       var params = new URLSearchParams(location.search);
       var servidor = (params.get('servidor') || 'http://192.168.137.1:8080').replace(/\/+$/, '');
       var monitor = params.get('monitor') || '1';
-      var girar = params.get('girar') === '90' || params.get('girar') === '270' ? params.get('girar') : '';
-      if (girar) document.documentElement.classList.add('girar-' + girar);
+      var girar = ['0', '90', '270'].indexOf(params.get('girar')) >= 0 ? params.get('girar') : '';
+      if (girar === '90' || girar === '270') document.documentElement.classList.add('girar-' + girar);
       var tentativas = 0;
       document.getElementById('titulo').textContent = 'Monitor ' + monitor;
       document.getElementById('endereco').textContent = servidor.replace(/^https?:\/\//, '');

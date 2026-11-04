@@ -45,7 +45,7 @@ Write-Host '==> Sistema ConecTorno'
 Copy-Item -Recurse (Join-Path $projeto 'servidor') $pacote
 Get-ChildItem -Path (Join-Path $pacote 'servidor') -Recurse -Directory -Filter '__pycache__' | Remove-Item -Recurse -Force
 Copy-Item -Recurse (Join-Path $projeto 'static') $pacote
-foreach ($nome in 'Iniciar ConecTorno.bat', 'ligar-hotspot.ps1', 'LEIA-ME.txt') {
+foreach ($nome in 'Iniciar ConecTorno.bat', 'ligar-hotspot.ps1', 'liberar-firewall.ps1', 'LEIA-ME.txt') {
     Copy-Item (Join-Path $PSScriptRoot $nome) $pacote
 }
 

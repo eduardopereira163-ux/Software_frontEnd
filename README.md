@@ -54,7 +54,7 @@ Nada é instalado. Siga o `LEIA-ME.txt` que vem no pacote. Resumo:
    - senha **só com letras e números**;
    - banda **2,4 GHz** (o Pi 3 não enxerga 5 GHz).
 2. Na mesma tela, **desligue a "Economia de energia"**. Sem isso, o Windows desliga o hotspot quando não há aparelhos conectados.
-3. Abra **Iniciar ConecTorno**. Se o Windows perguntar sobre o Firewall, clique em **Permitir acesso**. Se ele pedir a senha de administrador, peça ao TI que faça isso **uma vez**.
+3. Abra **Iniciar ConecTorno**. Na primeira vez em cada PC, ele **libera o Firewall do Windows** sozinho: apaga os bloqueios do `python.exe` do pacote e cria a regra *ConecTorno (servidor)* na porta 8080. Para isso o Windows pede permissão de administrador; sem a senha, peça ao TI que abra o *Iniciar ConecTorno* **uma vez** com *Executar como administrador*. Nas outras vezes ele só confere.
 4. Faça um teste: conecte o celular na rede ConecTorno e abra `http://192.168.137.1:8080`.
    - Se o painel abrir, os Raspberry também conseguem acessar o PC.
    - Se não abrir, o Firewall está bloqueando (veja o passo 3).
@@ -104,7 +104,7 @@ Sem perguntas: `WIFI_NOME=ConecTorno WIFI_SENHA=senai12345 ./instalar-tela.sh`. 
 ~/Software_frontEnd/monitor/girar-tela.sh 0     # monitor deitado
 ```
 
-Para instalar já com outro giro: `GIRAR=270 ./instalar-tela.sh` ou `GIRAR=0 ./instalar-tela.sh`. No celular ou num navegador qualquer, a tela do monitor fica em retrato sozinha quando a tela está em pé.
+Para instalar já com outro giro: `GIRAR=270 ./instalar-tela.sh` ou `GIRAR=0 ./instalar-tela.sh`. Num navegador qualquer, a tela do monitor (`/?monitor=1`) **gira 90° sozinha quando a tela está deitada**, porque os monitores dos tornos ficam de pé. Com a tela em pé (celular na vertical ou tela girada no Windows) ela não gira. Para ver sem girar, acrescente `&girar=0` ao endereço; `&girar=270` gira para o outro lado.
 
 Manutenção no Pi: `Ctrl+Alt+F2` abre um terminal; `Ctrl+Alt+F1` volta para a tela.
 

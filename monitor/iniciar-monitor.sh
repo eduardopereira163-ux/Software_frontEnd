@@ -7,7 +7,8 @@ set -uo pipefail
 URL="${1:-}"
 MONITOR="${2:-1}"
 GIRAR="${3:-0}"
-case "$GIRAR" in 90|270) EXTRA_URL="&girar=$GIRAR" ;; *) EXTRA_URL="" ;; esac
+case "$GIRAR" in 90|270) ;; *) GIRAR=0 ;; esac
+EXTRA_URL="&girar=$GIRAR"   # sempre informado: com 0 o monitor deitado não gira sozinho
 [ -n "$URL" ] || { echo "Uso: $0 <url-do-servidor> [numero-do-monitor]"; exit 1; }
 URL="${URL%/}"
 
