@@ -97,6 +97,15 @@ Enquanto o PC não está pronto, a tela mostra *"Aguardando o computador do prof
 
 Sem perguntas: `WIFI_NOME=ConecTorno WIFI_SENHA=senai12345 ./instalar-tela.sh`. Outro endereço de servidor: `SERVIDOR=http://IP:PORTA ./instalar-tela.sh`.
 
+**Monitor de pé (retrato).** A instalação já gira a imagem 90°: o layout fica em pé, com as páginas do PDF uma embaixo da outra e a observação no pé da tela. Para mudar depois, sem reinstalar:
+
+```bash
+~/Software_frontEnd/monitor/girar-tela.sh 270   # ficou de cabeça para baixo? gira para o outro lado
+~/Software_frontEnd/monitor/girar-tela.sh 0     # monitor deitado
+```
+
+Para instalar já com outro giro: `GIRAR=270 ./instalar-tela.sh` ou `GIRAR=0 ./instalar-tela.sh`. No celular ou num navegador qualquer, a tela do monitor fica em retrato sozinha quando a tela está em pé.
+
 Manutenção no Pi: `Ctrl+Alt+F2` abre um terminal; `Ctrl+Alt+F1` volta para a tela.
 
 | Problema no Pi | O que fazer |

@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Abre a tela de um monitor do ConecTorno em modo quiosque (mostra uma página de espera até o servidor responder).
-# Uso: ./iniciar-monitor.sh <url-do-servidor> [numero-do-monitor]
-# Exemplo: ./iniciar-monitor.sh http://localhost 1
+# Uso: ./iniciar-monitor.sh <url-do-servidor> [numero-do-monitor] [girar: 0, 90 ou 270]
+# Exemplo: ./iniciar-monitor.sh http://192.168.137.1:8080 1 90   (monitor de pé)
 set -uo pipefail
 
 URL="${1:-}"
 MONITOR="${2:-1}"
+GIRAR="${3:-0}"
+case "$GIRAR" in 90|270) EXTRA_URL="&girar=$GIRAR" ;; *) EXTRA_URL="" ;; esac
 [ -n "$URL" ] || { echo "Uso: $0 <url-do-servidor> [numero-do-monitor]"; exit 1; }
 URL="${URL%/}"
 
@@ -18,12 +20,12 @@ flock -n 9 || exit 0
 # Sem a página (script copiado para outro lugar), espera aqui mesmo antes de abrir o navegador.
 ESPERA="$(cd "$(dirname "$0")" && pwd)/aguardando.html"
 if [ -f "$ESPERA" ]; then
-  ENDERECO="file://$ESPERA?servidor=$URL&monitor=$MONITOR"
+  ENDERECO="file://$ESPERA?servidor=$URL&monitor=$MONITOR$EXTRA_URL"
 else
   until curl -s -o /dev/null --max-time 3 "$URL/api/monitor/$MONITOR/display"; do
     sleep 3
   done
-  ENDERECO="$URL/?monitor=$MONITOR"
+  ENDERECO="$URL/?monitor=$MONITOR$EXTRA_URL"
 fi
 
 # Evita que a tela apague ou entre em descanso (só tem efeito em sessões X11).

@@ -11,12 +11,19 @@
     :root { --blue: #20468f; --orange: #f04410; --muted: #5d6878; }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; }
-    body {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
-      padding: 24px; background: #fff; color: #16202e; cursor: none; text-align: center;
+    body { background: #fff; overflow: hidden; cursor: none; }
+    #tela {
+      height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+      padding: 24px; color: #16202e; text-align: center;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       border-top: 10px solid var(--blue);
     }
+    /* Monitor de pé: gira a tela de espera igual à tela do monitor. */
+    html.girar-90 #tela, html.girar-270 #tela {
+      position: fixed; top: 0; left: 0; width: 100vh; height: 100vw; transform-origin: top left;
+    }
+    html.girar-90 #tela { transform: translateX(100vw) rotate(90deg); }
+    html.girar-270 #tela { transform: translateY(100vh) rotate(-90deg); }
     img { height: 90px; width: auto; }
     h1 { margin: 0; font-size: 40px; color: var(--blue); }
     p { margin: 0; font-size: 24px; color: var(--muted); max-width: 900px; line-height: 1.4; }
@@ -30,17 +37,21 @@
   </style>
 </head>
 <body>
+  <main id="tela">
   <img src="../static/images/senai-logo.png" alt="SENAI">
   <h1 id="titulo">Monitor 1</h1>
   <div class="spinner" aria-hidden="true"></div>
   <p>Aguardando o computador do professor<br><span id="endereco" class="endereco"></span></p>
   <small>No computador do professor: ligue o hotspot e abra o "Iniciar ConecTorno".<br><span id="tentativa"></span></small>
+  </main>
 
   <script>
     (function () {
       var params = new URLSearchParams(location.search);
       var servidor = (params.get('servidor') || 'http://192.168.137.1:8080').replace(/\/+$/, '');
       var monitor = params.get('monitor') || '1';
+      var girar = params.get('girar') === '90' || params.get('girar') === '270' ? params.get('girar') : '';
+      if (girar) document.documentElement.classList.add('girar-' + girar);
       var tentativas = 0;
       document.getElementById('titulo').textContent = 'Monitor ' + monitor;
       document.getElementById('endereco').textContent = servidor.replace(/^https?:\/\//, '');
@@ -53,7 +64,7 @@
           if (feito) return;
           feito = true;
           clearTimeout(desistir);
-          if (ok) location.replace(servidor + '/?monitor=' + encodeURIComponent(monitor));
+          if (ok) location.replace(servidor + '/?monitor=' + encodeURIComponent(monitor) + (girar ? '&girar=' + girar : ''));
           else falhou();
         }
         var desistir = setTimeout(function () { fim(false); }, 4000);

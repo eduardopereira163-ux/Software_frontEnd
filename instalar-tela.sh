@@ -10,11 +10,14 @@
 #   WIFI_NOME=ConecTorno WIFI_SENHA=senai12345 ./instalar-tela.sh
 # Outro endereço de servidor (padrão: hotspot do Windows, porta 8080):
 #   SERVIDOR=http://192.168.137.1:8080 ./instalar-tela.sh
+# Monitor de pé (padrão: GIRAR=90). Deitado: GIRAR=0. De cabeça para baixo? Use GIRAR=270.
+#   Para mudar só o giro depois, sem reinstalar: monitor/girar-tela.sh 270
 set -euo pipefail
 
 PASTA="$(cd "$(dirname "$0")" && pwd)"
 MONITOR="${1:-1}"
 SERVIDOR="${SERVIDOR:-http://192.168.137.1:8080}"
+GIRAR="${GIRAR:-90}"
 CON_PC=hotspot-professor   # nome da conexão no NetworkManager (não é o nome da rede)
 
 erro() { echo "ERRO: $*" >&2; exit 1; }
@@ -22,6 +25,7 @@ passo() { echo; echo "==> $*"; }
 
 [ "$(id -un)" != "root" ] || erro "rode sem sudo (o script pede a senha quando precisar)."
 case "$MONITOR" in [1-6]) ;; *) erro "o número do monitor deve ser de 1 a 6." ;; esac
+case "$GIRAR" in 0|90|270) ;; *) erro "GIRAR deve ser 0 (deitado), 90 ou 270 (de pé)." ;; esac
 command -v nmcli >/dev/null || erro "NetworkManager não encontrado (use o Raspberry Pi OS atual, não o 'Legacy')."
 
 # Senha/nome só com letras, números, espaço, ponto, hífen e sublinhado: o teclado do Pi vem em inglês e
@@ -91,7 +95,7 @@ echo "Pronto: o Pi entra sozinho na rede \"$NOME\" sempre que ela estiver ligada
 
 passo "Configurando esta tela como Monitor $MONITOR"
 chmod +x "$PASTA/monitor/"*.sh
-"$PASTA/monitor/configurar-tela.sh" "$SERVIDOR" "$MONITOR"
+"$PASTA/monitor/configurar-tela.sh" "$SERVIDOR" "$MONITOR" "$GIRAR"
 
 passo "Pronto! Reinicie o Pi: sudo reboot"
 echo "Ao ligar, a tela mostra \"Aguardando o computador do professor\" até o PC estar com:"

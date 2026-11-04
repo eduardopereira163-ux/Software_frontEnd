@@ -659,8 +659,17 @@
   const url = new URL(window.location.href);
   const monitorId = url.searchParams.get('monitor') || (location.pathname.match(/^\/monitor\/([1-6])\/?$/) || [])[1];
   if (monitorId) {
+    // Monitor de pé numa tela deitada (Raspberry): ?girar=90 ou ?girar=270 gira a página inteira.
+    const rotate = ['90', '270'].includes(url.searchParams.get('girar')) ? url.searchParams.get('girar') : '';
+    if (rotate) document.documentElement.classList.add(`girar-${rotate}`);
+    // Tela em pé (girada, monitor de pé ou celular na vertical): layout em retrato.
+    const portrait = window.matchMedia('(orientation: portrait)');
+    const updatePortrait = () => monitorView.classList.toggle('retrato', Boolean(rotate) || portrait.matches);
+    updatePortrait();
+    portrait.addEventListener('change', updatePortrait);
     // Mantém o endereço simples, sem token ou credencial.
-    window.history.replaceState({}, document.title, `${url.pathname}?monitor=${encodeURIComponent(monitorId)}`);
+    const query = `?monitor=${encodeURIComponent(monitorId)}${rotate ? `&girar=${rotate}` : ''}`;
+    window.history.replaceState({}, document.title, `${url.pathname}${query}`);
     startMonitor(monitorId);
   } else {
     startTeacher();

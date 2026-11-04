@@ -51,7 +51,11 @@ foreach ($nome in 'Iniciar ConecTorno.bat', 'ligar-hotspot.ps1', 'LEIA-ME.txt') 
 
 Write-Host '==> Conferindo'
 & (Join-Path $pacote 'python\python.exe') -c "import http.server, json, hashlib, secrets, uuid; print('   Python ok')"
-& $pdftoppm.FullName -v 2>&1 | Select-Object -First 1 | ForEach-Object { Write-Host "   $_" }
+# O pdftoppm escreve a versão na saída de erro; no PowerShell 5 isso vira "erro" e pararia o script.
+$ErrorActionPreference = 'Continue'
+$versao = & $pdftoppm.FullName -v 2>&1 | Select-Object -First 1
+$ErrorActionPreference = 'Stop'
+Write-Host "   Conversor de PDF ok ($versao)"
 
 Write-Host '==> Compactando'
 if (Test-Path $zip) { Remove-Item -Force $zip }
